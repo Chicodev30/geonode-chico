@@ -1583,14 +1583,7 @@ if GEONODE_CLIENT_LAYER_PREVIEW_LIBRARY == "mapstore":
     #        "worldExtent": [ -180.0, -80.0, 180.0, 84.0 ]
     #    }
     # ]
-    MAPSTORE_PROJECTION_DEFS = [
-    {
-        "code": "EPSG:10665",
-        "def": "+proj=tmerc +lat_0=0 +lon_0=-51 +k=0.999995 +x_0=300000 +y_0=5000000 +datum=WGS84 +units=m +no_defs",
-        "extent": [250000, 4950000, 350000, 5050000],
-        "worldExtent": [-52, -31, -50, -29]
-    }
-]
+    MAPSTORE_PROJECTION_DEFS = []
 
     # list of rules to change the plugins configuration
     # allowed operation: add, remove and replace
