@@ -1091,6 +1091,7 @@ EPSG_CODE_MATCHES = {
     "EPSG:3785": "(3785 DEPRECATED) Popular Visualisation CRS / Mercator",
     "EPSG:32647": "(32647) WGS 84 / UTM zone 47N",
     "EPSG:32736": "(32736) WGS 84 / UTM zone 36S",
+    "EPSG:10665": "(10665) Porto Alegre TM",
 }
 
 # CSW settings
