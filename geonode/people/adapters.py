@@ -208,6 +208,43 @@ class LocalAccountAdapter(DefaultAccountAdapter, BaseInvitationsAdapter):
     def check_user_invalid_email(self, request, user):
         return handle_user_invalid_email(user)
 
+class CustomAccountAdapter(LocalAccountAdapter):
+    """Custom Account Adapter with enhanced password validation."""
+
+    def clean_password(self, password, user=None):
+        """
+        Validates the password according to security rules:
+        - At least 8 characters
+        - At least one uppercase letter
+        - At least one lowercase letter
+        - At least one digit
+        - At least one special character
+        """
+        if len(password) < 8:
+            raise ValidationError("A senha deve ter pelo menos 8 caracteres.")
+        
+        if not any(char.isupper() for char in password):
+            raise ValidationError("A senha deve conter pelo menos uma letra maiúscula.")
+        
+        if not any(char.islower() for char in password):
+            raise ValidationError("A senha deve conter pelo menos uma letra minúscula.")
+        
+        if not any(char.isdigit() for char in password):
+            raise ValidationError("A senha deve conter pelo menos um número.")
+        
+        if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
+            raise ValidationError("A senha deve conter pelo menos um caractere especial (!@#$%^&*(),.?\":{}|<>).")
+        
+        return super().clean_password(password, user)
+
+    def save_user(self, request, user, form, commit=True):
+        """
+        Overrides save_user to validate password before saving.
+        """
+        password = form.cleaned_data.get("password1")
+        if password:
+            self.clean_password(password, user)
+        return super().save_user(request, user, form, commit=commit)
 
 class SocialAccountAdapter(DefaultSocialAccountAdapter):
     """Customizations for social accounts
