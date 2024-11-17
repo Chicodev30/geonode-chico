@@ -1938,7 +1938,7 @@ MAP_CLIENT_USE_CROSS_ORIGIN_CREDENTIALS = ast.literal_eval(
 
 ACCOUNT_OPEN_SIGNUP = ast.literal_eval(os.environ.get("ACCOUNT_OPEN_SIGNUP", "True"))
 ACCOUNT_APPROVAL_REQUIRED = ast.literal_eval(os.getenv("ACCOUNT_APPROVAL_REQUIRED", "False"))
-ACCOUNT_ADAPTER = "geonode.people.adapters.LocalAccountAdapter"
+ACCOUNT_ADAPTER="geonode.people.adapters.CustomAccountAdapter"
 ACCOUNT_AUTHENTICATION_METHOD = os.environ.get("ACCOUNT_AUTHENTICATION_METHOD", "username_email")
 ACCOUNT_CONFIRM_EMAIL_ON_GET = ast.literal_eval(os.environ.get("ACCOUNT_CONFIRM_EMAIL_ON_GET", "True"))
 ACCOUNT_EMAIL_REQUIRED = ast.literal_eval(os.environ.get("ACCOUNT_EMAIL_REQUIRED", "True"))
