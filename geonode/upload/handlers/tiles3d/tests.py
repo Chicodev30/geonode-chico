@@ -58,16 +58,16 @@ class TestTiles3DFileHandler(TestCase):
             "geonode.upload.import_resource",
             "geonode.upload.create_geonode_resource",
         )
-        self.assertEqual(len(self.handler.ACTIONS["import"]), 3)
-        self.assertTupleEqual(expected, self.handler.ACTIONS["import"])
+        self.assertEqual(len(self.handler.TASKS["upload"]), 3)
+        self.assertTupleEqual(expected, self.handler.TASKS["upload"])
 
     def test_task_list_is_the_expected_one_copy(self):
         expected = (
             "start_copy",
             "geonode.upload.copy_geonode_resource",
         )
-        self.assertEqual(len(self.handler.ACTIONS["copy"]), 2)
-        self.assertTupleEqual(expected, self.handler.ACTIONS["copy"])
+        self.assertEqual(len(self.handler.TASKS["copy"]), 2)
+        self.assertTupleEqual(expected, self.handler.TASKS["copy"])
 
     def test_is_valid_should_raise_exception_if_the_parallelism_is_met(self):
         parallelism, created = UploadParallelismLimit.objects.get_or_create(slug="default_max_parallel_uploads")
@@ -154,7 +154,6 @@ class TestTiles3DFileHandler(TestCase):
     def test_validate_should_raise_exception_for_invalid_root_geometricError(self):
         _json = {
             "asset": {"version": "1.1"},
-            "geometricError": 1.0,
             "root": {"boundingVolume": {"box": []}, "foo": 0.0},
         }
         _path = "/tmp/tileset.json"
@@ -164,7 +163,10 @@ class TestTiles3DFileHandler(TestCase):
             self.handler.is_valid(files={"base_file": _path}, user=self.user)
 
         self.assertIsNotNone(_exc)
-        self.assertTrue("The mandatory 'geometricError' for the key 'root' is missing" in str(_exc.exception.detail))
+        self.assertTrue(
+            "The provided 3DTiles is not valid, some of the mandatory keys are missing. Mandatory keys are: 'asset', 'geometricError', 'root'"
+            in str(_exc.exception.detail)
+        )
         os.remove(_path)
 
     def test_get_ogr2ogr_driver_should_return_the_expected_driver(self):
@@ -190,10 +192,14 @@ class TestTiles3DFileHandler(TestCase):
         """
         expected = {
             "id": "3dtiles",
-            "label": "3D Tiles",
-            "format": "vector",
-            "ext": ["json"],
-            "optional": ["xml", "sld"],
+            "formats": [
+                {
+                    "label": "3D Tiles",
+                    "required_ext": ["zip"],
+                }
+            ],
+            "actions": list(Tiles3DFileHandler.TASKS.keys()),
+            "type": "vector",
         }
         actual = self.handler.supported_file_extension_config
         self.assertDictEqual(actual, expected)
