@@ -137,7 +137,6 @@ services:
     volumes:
       - dbdata:/var/lib/postgresql/data
       - dbbackups:/pg_backups
-      - ./postgres/init:/docker-entrypoint-initdb.d/
     restart: unless-stopped
     healthcheck:
       test: "pg_isready -d postgres -U postgres"
