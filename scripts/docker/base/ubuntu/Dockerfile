@@ -21,7 +21,9 @@ RUN apt-get update -y && apt-get install -y --no-install-recommends \
     python3-all-dev python3-dev \
     python3-gdal python3-psycopg2 python3-ldap \
     python3-pip python3-pil python3-lxml \
-    uwsgi uwsgi-plugin-python3 python3-gdbm python-is-python3 gdal-bin ca-certificates
+    uwsgi uwsgi-plugin-python3 python3-gdbm python-is-python3 gdal-bin \
+    ca-certificates  cmake sqlite3 libsqlite3-dev libtiff-dev \
+    libcurl4-openssl-dev libgeos-dev
 
 RUN apt-get install -y devscripts build-essential debhelper pkg-kde-tools sharutils
 #RUN git clone https://salsa.debian.org/debian-gis-team/proj.git /tmp/proj
@@ -34,11 +36,6 @@ RUN pip3 install uwsgi \
 
 # Install "sherlock" to be used with "memcached"
 RUN pip install sherlock
-
-# 1) Instalar dependências
-RUN apt-get update && apt-get install -y \
-    curl build-essential cmake sqlite3 libsqlite3-dev libtiff-dev \
-    libcurl4-openssl-dev libgeos-dev
 
 # 2) Baixar e compilar PROJ 9.5.0
 RUN curl -LO https://download.osgeo.org/proj/proj-9.5.0.tar.gz \
