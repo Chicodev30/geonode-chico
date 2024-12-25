@@ -24,8 +24,8 @@ RUN apt-get update -y && apt-get install -y --no-install-recommends \
     uwsgi uwsgi-plugin-python3 python3-gdbm python-is-python3 gdal-bin
 
 RUN apt-get install -y devscripts build-essential debhelper pkg-kde-tools sharutils
-RUN git clone https://salsa.debian.org/debian-gis-team/proj.git /tmp/proj
-RUN cd /tmp/proj && debuild -i -us -uc -b && dpkg -i ../*.deb
+#RUN git clone https://salsa.debian.org/debian-gis-team/proj.git /tmp/proj
+#RUN cd /tmp/proj && debuild -i -us -uc -b && dpkg -i ../*.deb
 
 # Install pip packages
 RUN pip3 install uwsgi \
@@ -34,6 +34,31 @@ RUN pip3 install uwsgi \
 
 # Install "sherlock" to be used with "memcached"
 RUN pip install sherlock
+
+# Install sqlite
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libsqlite3-dev \
+    sqlite3 \
+    libtiff5-dev \              
+    libcurl4-openssl-dev \ 
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+    
+# Define o diretório de trabalho temporário
+WORKDIR /tmp
+
+# Baixa e descompacta a versão 9.5.0 do PROJ
+RUN wget https://download.osgeo.org/proj/proj-9.5.0.tar.gz \
+    && tar xzf proj-9.5.0.tar.gz \
+    && rm proj-9.5.0.tar.gz
+
+# Compila e instala o PROJ via CMake
+WORKDIR /tmp/proj-9.5.0
+RUN mkdir build && cd build \
+    && cmake .. \
+    && make -j"$(nproc)" \
+    && make install \
+    && ldconfig
 
 # Cleanup apt update lists
 RUN rm -rf /var/lib/apt/lists/*
