@@ -21,7 +21,7 @@ RUN apt-get update -y && apt-get install -y --no-install-recommends \
     python3-all-dev python3-dev \
     python3-gdal python3-psycopg2 python3-ldap \
     python3-pip python3-pil python3-lxml \
-    uwsgi uwsgi-plugin-python3 python3-gdbm python-is-python3 gdal-bin
+    uwsgi uwsgi-plugin-python3 python3-gdbm python-is-python3 gdal-bin ca-certificates
 
 RUN apt-get install -y devscripts build-essential debhelper pkg-kde-tools sharutils
 #RUN git clone https://salsa.debian.org/debian-gis-team/proj.git /tmp/proj
@@ -35,30 +35,22 @@ RUN pip3 install uwsgi \
 # Install "sherlock" to be used with "memcached"
 RUN pip install sherlock
 
-# Install sqlite
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libsqlite3-dev \
-    sqlite3 \
-    libtiff5-dev \              
-    libcurl4-openssl-dev \ 
-    ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
-    
-# Define o diretório de trabalho temporário
-WORKDIR /tmp
+# 1) Instalar dependências
+RUN apt-get update && apt-get install -y \
+    curl build-essential cmake sqlite3 libsqlite3-dev libtiff-dev \
+    libcurl4-openssl-dev libgeos-dev
 
-# Baixa e descompacta a versão 9.5.0 do PROJ
-RUN wget https://download.osgeo.org/proj/proj-9.5.0.tar.gz \
+# 2) Baixar e compilar PROJ 9.5.0
+RUN curl -LO https://download.osgeo.org/proj/proj-9.5.0.tar.gz \
     && tar xzf proj-9.5.0.tar.gz \
-    && rm proj-9.5.0.tar.gz
-
-# Compila e instala o PROJ via CMake
-WORKDIR /tmp/proj-9.5.0
-RUN mkdir build && cd build \
-    && cmake .. \
-    && make -j"$(nproc)" \
+    && cd proj-9.5.0 \
+    && mkdir build && cd build \
+    && cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_SHARED_LIBS=ON \
+    && make -j4 \
     && make install \
-    && ldconfig
+    && ldconfig \
+    && cd ../.. \
+    && rm -rf proj-9.5.0.tar.gz proj-9.5.0
 
 # Cleanup apt update lists
 RUN rm -rf /var/lib/apt/lists/*
