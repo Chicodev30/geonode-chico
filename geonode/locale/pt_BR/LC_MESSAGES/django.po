@@ -9893,5 +9893,5 @@ msgstr "Permissão Negada"
 #~ msgid "you"
 #~ msgstr "you"
 
-#~ msgid "All resources"
-#~ msgstr "Todos os recursos"
+msgid "All resources"
+msgstr "Todos os recursos"
