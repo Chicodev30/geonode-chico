@@ -17,7 +17,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GeoNode\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-27 09:24-0300\n"
+"POT-Creation-Date: 2024-12-27 16:36-0300\n"
 "PO-Revision-Date: 2022-09-26 19:02-0300\n"
 "Last-Translator: Edson Flavio de Souza <edson.flavio@ufpr.br>\n"
 "Language-Team: Portuguese (Brazil) (http://www.transifex.com/geonode/geonode/"
@@ -173,12 +173,12 @@ msgstr "Palavras-chave de um dicionário"
 msgid "List of keywords from Thesaurus"
 msgstr "Lista de Palavras-chave de um dicionário"
 
-#: .\geonode\base\forms.py:357
+#: .\geonode\base\forms.py:358
 msgid ""
 "Something went wrong in finding the profile(s) in a contact role form ..."
 msgstr ""
 
-#: .\geonode\base\forms.py:363
+#: .\geonode\base\forms.py:364
 #: .\geonode\base\templates\base\base_panels.html:498
 #: .\geonode\documents\templates\layouts\doc_panels.html:554
 #: .\geonode\geoapps\templates\layouts\app_panels.html:498
@@ -189,7 +189,7 @@ msgstr ""
 msgid "Related resources"
 msgstr "Recursos"
 
-#: .\geonode\base\forms.py:416
+#: .\geonode\base\forms.py:417
 #: .\geonode\base\templates\base\_resourcebase_info_panel.html:30
 #: .\geonode\catalogue\templates\geonode_metadata_full.html:61
 #: .\geonode\services\forms.py:89
@@ -199,26 +199,26 @@ msgstr "Recursos"
 msgid "Abstract"
 msgstr "Resumo"
 
-#: .\geonode\base\forms.py:418
+#: .\geonode\base\forms.py:419
 #: .\geonode\base\templates\base\_resourcebase_info_panel.html:181
 #: .\geonode\catalogue\templates\geonode_metadata_full.html:84
 #: .\geonode\templates\metadata_detail.html:319
 msgid "Purpose"
 msgstr "Finalidade"
 
-#: .\geonode\base\forms.py:420
+#: .\geonode\base\forms.py:421
 msgid "Other constraints"
 msgstr "Outras restrições"
 
-#: .\geonode\base\forms.py:422
+#: .\geonode\base\forms.py:423
 msgid "Supplemental information"
 msgstr "Informações complementares"
 
-#: .\geonode\base\forms.py:427
+#: .\geonode\base\forms.py:428
 msgid "Data quality statement"
 msgstr "Declaração de qualidade de dados"
 
-#: .\geonode\base\forms.py:438 .\geonode\base\forms.py:668
+#: .\geonode\base\forms.py:439 .\geonode\base\forms.py:669
 #: .\geonode\base\templates\base\_resourcebase_info_panel.html:42
 #: .\geonode\catalogue\templates\geonode_metadata_full.html:58
 #: .\geonode\documents\exif\templates\exif\_exif_document_detail.html:13
@@ -227,19 +227,19 @@ msgstr "Declaração de qualidade de dados"
 msgid "Date"
 msgstr "Data"
 
-#: .\geonode\base\forms.py:445 .\geonode\base\models.py:768
+#: .\geonode\base\forms.py:446 .\geonode\base\models.py:768
 msgid "temporal extent start"
 msgstr "início da extensão temporal"
 
-#: .\geonode\base\forms.py:453 .\geonode\base\models.py:771
+#: .\geonode\base\forms.py:454 .\geonode\base\models.py:771
 msgid "temporal extent end"
 msgstr "fim da extensão temporal"
 
-#: .\geonode\base\forms.py:531
+#: .\geonode\base\forms.py:532
 msgid "Free-text Keywords"
 msgstr "Palavras-chave de texto livre"
 
-#: .\geonode\base\forms.py:533
+#: .\geonode\base\forms.py:534
 msgid ""
 "A space or comma-separated list of keywords. Use the widget to select from "
 "Hierarchical tree."
@@ -247,21 +247,21 @@ msgstr ""
 "Uma lista de palavras-chave separadas por vírgula ou espaço. Utilize o "
 "widget para selecionar a partir da árvore hierárquica."
 
-#: .\geonode\base\forms.py:538 .\geonode\base\forms.py:667
+#: .\geonode\base\forms.py:539 .\geonode\base\forms.py:668
 #: .\geonode\base\templates\base\_resourcebase_info_panel.html:95
 #: .\geonode\catalogue\templates\geonode_metadata_full.html:153
 #: .\geonode\templates\metadata_detail.html:129
 msgid "Regions"
 msgstr "Regiões"
 
-#: .\geonode\base\forms.py:546
+#: .\geonode\base\forms.py:547
 msgid ""
 "Additional metadata, must be in format [                {\"metadata_key\": "
 "\"metadata_value\"},                {\"metadata_key\": \"metadata_value"
 "\"}             ]"
 msgstr ""
 
-#: .\geonode\base\forms.py:663
+#: .\geonode\base\forms.py:664
 #: .\geonode\base\templates\base\_resourcebase_info_panel.html:119
 #: .\geonode\base\templates\base\base_panels.html:338
 #: .\geonode\documents\templates\layouts\doc_panels.html:363
@@ -272,12 +272,12 @@ msgstr ""
 msgid "Group"
 msgstr "Grupo"
 
-#: .\geonode\base\forms.py:664 .\geonode\base\models.py:691
+#: .\geonode\base\forms.py:665 .\geonode\base\models.py:691
 #: .\geonode\base\models.py:949 .\geonode\documents\models.py:77
 msgid "Owner"
 msgstr "Proprietário"
 
-#: .\geonode\base\forms.py:665
+#: .\geonode\base\forms.py:666
 #: .\geonode\base\templates\base\_resourcebase_info_panel.html:85
 #: .\geonode\base\templates\base\base_metadata_advanced.html:98
 #: .\geonode\base\templates\base\base_panels.html:318
@@ -294,7 +294,7 @@ msgstr "Proprietário"
 msgid "Category"
 msgstr "Categoria"
 
-#: .\geonode\base\forms.py:666 .\geonode\base\models.py:741
+#: .\geonode\base\forms.py:667 .\geonode\base\models.py:741
 #: .\geonode\base\templates\base\_resourcebase_info_panel.html:17
 #: .\geonode\base\templates\base\_resourcebase_info_panel.html:149
 #: .\geonode\catalogue\templates\geonode_metadata_full.html:102
@@ -303,7 +303,7 @@ msgstr "Categoria"
 msgid "License"
 msgstr "Licença"
 
-#: .\geonode\base\forms.py:670
+#: .\geonode\base\forms.py:671
 #: .\geonode\base\templates\base\_resourcebase_info_panel.html:186
 #: .\geonode\catalogue\templates\geonode_metadata_full.html:105
 #: .\geonode\templates\base.html:389
@@ -311,15 +311,15 @@ msgstr "Licença"
 msgid "Language"
 msgstr "Idioma"
 
-#: .\geonode\base\forms.py:723
+#: .\geonode\base\forms.py:724
 msgid "Resource"
 msgstr "Recurso"
 
-#: .\geonode\base\forms.py:726
+#: .\geonode\base\forms.py:727
 msgid "Reason"
 msgstr "Motivo"
 
-#: .\geonode\base\forms.py:726
+#: .\geonode\base\forms.py:727
 msgid "Short reasoning behind the request"
 msgstr "Breve motivo relacionado ao pedido"
 
@@ -9892,3 +9892,6 @@ msgstr "Permissão Negada"
 
 #~ msgid "you"
 #~ msgstr "you"
+
+#~ msgid "All resources"
+#~ msgstr "Todos os recursos"
