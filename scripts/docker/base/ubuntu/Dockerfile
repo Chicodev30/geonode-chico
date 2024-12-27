@@ -22,7 +22,7 @@ RUN apt-get update -y && apt-get install -y --no-install-recommends \
     python3-gdal python3-psycopg2 python3-ldap \
     python3-pip python3-pil python3-lxml \
     uwsgi uwsgi-plugin-python3 python3-gdbm python-is-python3 gdal-bin \
-    ca-certificates  cmake sqlite3 libsqlite3-dev libtiff-dev \
+    ca-certificates cmake sqlite3 libsqlite3-dev libtiff-dev \
     libcurl4-openssl-dev libgeos-dev
 
 RUN apt-get install -y devscripts build-essential debhelper pkg-kde-tools sharutils
