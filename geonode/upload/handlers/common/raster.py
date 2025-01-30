@@ -16,42 +16,41 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 #########################################################################
-import pyproj
-from geonode.upload.publisher import DataPublisher
+
 import json
 import logging
 from pathlib import Path
 from subprocess import PIPE, Popen
 from typing import List
 
+import pyproj
 from django.conf import settings
 from django.db.models import Q
+from osgeo import gdal
 from geonode.base.models import ResourceBase
 from geonode.layers.models import Dataset
 from geonode.resource.enumerator import ExecutionRequestAction as exa
 from geonode.resource.manager import resource_manager
 from geonode.resource.models import ExecutionRequest
+from geonode.storage.manager import storage_manager
 from geonode.upload.api.exceptions import ImportException
+from geonode.upload.celery_app import importer_app
 from geonode.upload.celery_tasks import ErrorBaseTaskClass, import_orchestrator
 from geonode.upload.handlers.base import BaseHandler
 from geonode.upload.handlers.geotiff.exceptions import InvalidGeoTiffException
 from geonode.upload.handlers.utils import create_alternate, should_be_imported
 from geonode.upload.models import ResourceHandlerInfo
 from geonode.upload.orchestrator import orchestrator
-from osgeo import gdal
-from geonode.upload.celery_app import importer_app
-from geonode.storage.manager import storage_manager
+from geonode.upload.publisher import DataPublisher
 
 logger = logging.getLogger("importer")
-
-
 gdal.UseExceptions()
 
 
 class BaseRasterFileHandler(BaseHandler):
     """
-    Handler to import Raster files into GeoNode data db
-    It must provide the task_lists required to comple the upload
+    Handler to import Raster files into GeoNode data db.
+    It must provide the task lists required to complete the upload.
     """
 
     @property
@@ -65,18 +64,13 @@ class BaseRasterFileHandler(BaseHandler):
     @staticmethod
     def get_geoserver_store_name(default=None):
         """
-        Method that return the base store name where to save the data in geoserver
-        and a boolean to know if the store should be created.
-        For raster, the store is created during the geoserver publishing
-        so we dont want to created it upfront
+        For raster, the store is created during the GeoServer publishing,
+        so we don't want to create it upfront.
         """
         return default, False
 
     @staticmethod
     def is_valid(files, user, **kwargs):
-        """
-        Define basic validation steps
-        """
         result = Popen("gdal_translate --version", stdout=PIPE, stderr=PIPE, shell=True)
         _, stderr = result.communicate()
         if stderr:
@@ -85,34 +79,18 @@ class BaseRasterFileHandler(BaseHandler):
 
     @staticmethod
     def has_serializer(_data) -> bool:
-        """
-        This endpoint will return True or False if with the info provided
-        the handler is able to handle the file or not
-        """
         return False
 
     @staticmethod
     def can_do(action) -> bool:
-        """
-        This endpoint will return True or False if with the info provided
-        the handler is able to handle the file or not
-        """
         return action in BaseHandler.TASKS
 
     @staticmethod
     def create_error_log(exc, task_name, *args):
-        """
-        This function will handle the creation of the log error for each message.
-        This is helpful and needed, so each handler can specify the log as needed
-        """
         return f"Task: {task_name} raised an error during actions for layer: {args[-1]}: {exc}"
 
     @staticmethod
     def extract_params_from_data(_data, action=None):
-        """
-        Remove from the _data the params that needs to save into the executionRequest object
-        all the other are returned
-        """
         if action == exa.COPY.value:
             title = json.loads(_data.get("defaults"))
             return {"title": title.pop("title"), "store_spatial_file": True}, _data
@@ -127,10 +105,6 @@ class BaseRasterFileHandler(BaseHandler):
 
     @staticmethod
     def publish_resources(resources: List[str], catalog, store, workspace):
-        """
-        Given a list of strings (which rappresent the table on geoserver)
-        Will publish the resorces on geoserver
-        """
         for _resource in resources:
             try:
                 catalog.create_coveragestore(
@@ -148,13 +122,9 @@ class BaseRasterFileHandler(BaseHandler):
         return True
 
     def pre_validation(self, files, execution_id, **kwargs):
-        """
-        Hook for let the handler prepare the data before the validation.
-        Maybe a file rename, assign the resource to the execution_id
-        """
+        pass
 
     def overwrite_geoserver_resource(self, resource: List[str], catalog, store, workspace):
-        # we need to delete the resource before recreating it
         self._delete_resource(resource, catalog, workspace)
         self._delete_store(resource, catalog, workspace)
         return self.publish_resources([resource], catalog, store, workspace)
@@ -190,9 +160,6 @@ class BaseRasterFileHandler(BaseHandler):
 
     @staticmethod
     def delete_resource(instance):
-        # it should delete the image from the geoserver data dir
-        # for now we can rely on the geonode delete behaviour
-        # since the file is stored on local
         pass
 
     @staticmethod
@@ -206,9 +173,7 @@ class BaseRasterFileHandler(BaseHandler):
                     "name": alternate,
                     "crs": ResourceBase.objects.filter(
                         Q(alternate__icontains=layer_name) | Q(title__icontains=layer_name)
-                    )
-                    .first()
-                    .srid,
+                    ).first().srid,
                     "raster_path": kwargs["kwargs"].get("new_file_location").get("files")[0],
                 }
             ]
@@ -225,33 +190,38 @@ class BaseRasterFileHandler(BaseHandler):
         ]
 
     def identify_authority(self, layer):
-        try:
-            layer_wkt = layer.GetSpatialRef().ExportToWkt()
-            _name = "EPSG"
-            _code = pyproj.CRS(layer_wkt).to_epsg(min_confidence=20)
-            if _code is None:
-                layer_proj4 = layer.GetSpatialRef().ExportToProj4()
-                _code = pyproj.CRS(layer_proj4).to_epsg(min_confidence=20)
-                if _code is None:
-                    raise Exception("CRS authority code not found, fallback to default behaviour")
-        except Exception:
-            spatial_ref = layer.GetSpatialRef()
-            spatial_ref.AutoIdentifyEPSG()
-            _name = spatial_ref.GetAuthorityName(None) or spatial_ref.GetAttrValue("AUTHORITY", 0)
-            _code = (
-                spatial_ref.GetAuthorityCode("PROJCS")
-                or spatial_ref.GetAuthorityCode("GEOGCS")
-                or spatial_ref.GetAttrValue("AUTHORITY", 1)
-            )
-        return f"{_name}:{_code}"
+        layer_wkt = layer.GetSpatialRef().ExportToWkt()
+        crs = pyproj.CRS(layer_wkt)
+        _code = crs.to_epsg(min_confidence=20)
+
+        if _code is None:
+            layer_proj4 = layer.GetSpatialRef().ExportToProj4()
+            _code = pyproj.CRS(layer_proj4).to_epsg(min_confidence=20)
+
+        if _code is None or _code != 10665:
+            proj4_str = crs.to_proj4()
+            if (
+                "+proj=tmerc" in proj4_str and
+                "+lon_0=-51" in proj4_str and
+                "+k=0.999995" in proj4_str and
+                "+x_0=300000" in proj4_str and
+                "+y_0=5000000" in proj4_str
+            ):
+                return "EPSG:10665"
+            else:
+                spatial_ref = layer.GetSpatialRef()
+                spatial_ref.AutoIdentifyEPSG()
+                _name = spatial_ref.GetAuthorityName(None) or spatial_ref.GetAttrValue("AUTHORITY", 0)
+                _code = (
+                    spatial_ref.GetAuthorityCode("PROJCS") or
+                    spatial_ref.GetAuthorityCode("GEOGCS") or
+                    spatial_ref.GetAttrValue("AUTHORITY", 1)
+                )
+                return f"{_name}:{_code}"
+
+        return f"EPSG:{_code}"
 
     def import_resource(self, files: dict, execution_id: str, **kwargs) -> str:
-        """
-        Main function to import the resource.
-        Internally will call the steps required to import the
-        data inside the geonode_data database
-        """
-        # for the moment we skip the dyanamic model creation
         logger.info("Total number of layers available: 1")
         _exec = self._get_execution_request_object(execution_id)
         _input = {**_exec.input_params, **{"total_layers": 1}}
@@ -259,11 +229,9 @@ class BaseRasterFileHandler(BaseHandler):
 
         try:
             filename = Path(files.get("base_file")).stem
-            # start looping on the layers available
             layer_name = self.fixup_name(filename)
-
             should_be_overwritten = _exec.input_params.get("overwrite_existing_layer")
-            # should_be_imported check if the user+layername already exists or not
+
             if should_be_imported(
                 layer_name,
                 _exec.user,
@@ -274,23 +242,19 @@ class BaseRasterFileHandler(BaseHandler):
                 if _exec.input_params.get("resource_pk"):
                     dataset = Dataset.objects.filter(pk=_exec.input_params.get("resource_pk")).first()
                     if not dataset:
-                        raise ImportException("The dataset selected for the ovewrite does not exists")
+                        raise ImportException("The dataset selected for the overwrite does not exist")
                     if dataset.is_vector():
-                        raise Exception("cannot override a vector dataset with a raster one")
+                        raise Exception("Cannot overwrite a vector dataset with a raster one")
                     alternate = dataset.alternate.split(":")[-1]
                     orchestrator.update_execution_request_obj(_exec, {"geonode_resource": dataset})
                 else:
                     user_datasets = Dataset.objects.filter(owner=_exec.user, alternate=f"{workspace.name}:{layer_name}")
-
                     dataset_exists = user_datasets.exists()
 
                     if dataset_exists and should_be_overwritten:
                         if user_datasets.is_vector():
-                            raise Exception("cannot override a vector dataset with a raster one")
-                        layer_name, alternate = (
-                            layer_name,
-                            user_datasets.first().alternate.split(":")[-1],
-                        )
+                            raise Exception("Cannot overwrite a vector dataset with a raster one")
+                        layer_name, alternate = layer_name, user_datasets.first().alternate.split(":")[-1]
                     elif not dataset_exists:
                         alternate = layer_name
                     else:
@@ -323,8 +287,8 @@ class BaseRasterFileHandler(BaseHandler):
         asset=None,
     ):
         """
-        Base function to create the resource into geonode. Each handler can specify
-        and handle the resource in a different way
+        Base function to create the resource in GeoNode.
+        Each handler can specify and handle the resource in a different way.
         """
         saved_dataset = resource_type.objects.filter(alternate__icontains=alternate)
 
@@ -337,8 +301,6 @@ class BaseRasterFileHandler(BaseHandler):
         )
 
         _overwrite = _exec.input_params.get("overwrite_existing_layer", False)
-        # if the layer exists, we just update the information of the dataset by
-        # let it recreate the catalogue
         if not saved_dataset.exists() and _overwrite:
             logger.warning(
                 f"The dataset required {alternate} does not exists, but an overwrite is required, the resource will be created"
@@ -379,15 +341,11 @@ class BaseRasterFileHandler(BaseHandler):
         resource_type: Dataset = Dataset,
         asset=None,
     ):
-
         _exec = self._get_execution_request_object(execution_id)
 
         dataset = resource_type.objects.filter(alternate__icontains=alternate, owner=_exec.user)
 
         _overwrite = _exec.input_params.get("overwrite_existing_layer", False)
-        # if the layer exists, we just update the information of the dataset by
-        # let it recreate the catalogue
-
         if dataset.exists() and _overwrite:
             dataset = dataset.first()
 
@@ -436,10 +394,6 @@ class BaseRasterFileHandler(BaseHandler):
         execution_id: ExecutionRequest,
         **kwargs,
     ):
-        """
-        Create relation between the GeonodeResource and the handler used
-        to create/copy it
-        """
         ResourceHandlerInfo.objects.create(
             handler_module_path=str(handler_module_path),
             resource=resource,
@@ -454,9 +408,6 @@ class BaseRasterFileHandler(BaseHandler):
         execution_id: ExecutionRequest,
         **kwargs,
     ):
-        """
-        Overwrite the ResourceHandlerInfo
-        """
         if resource.resourcehandlerinfo_set.exists():
             resource.resourcehandlerinfo_set.update(
                 handler_module_path=handler_module_path,
@@ -490,22 +441,12 @@ class BaseRasterFileHandler(BaseHandler):
 
     @staticmethod
     def copy_original_file(dataset):
-        """
-        Copy the original file into a new location
-        """
         return storage_manager.copy(dataset)
 
     def _import_resource_rollback(self, exec_id, istance_name=None, *args, **kwargs):
-        """
-        In the raster, this step just generate the alternate, no real action
-        are done on the database
-        """
         pass
 
     def _publish_resource_rollback(self, exec_id, istance_name=None, *args, **kwargs):
-        """
-        We delete the resource from geoserver
-        """
         logger.info(
             f"Rollback publishing step in progress for execid: {exec_id} resource published was: {istance_name}"
         )
@@ -526,7 +467,8 @@ class BaseRasterFileHandler(BaseHandler):
 )
 def copy_raster_file(exec_id, actual_step, layer_name, alternate, handler_module_path, action, **kwargs):
     """
-    Perform a copy of the original raster file"""
+    Perform a copy of the original raster file.
+    """
 
     original_dataset = ResourceBase.objects.filter(alternate=alternate)
     if not original_dataset.exists():
