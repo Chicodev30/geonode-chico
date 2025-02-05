@@ -319,36 +319,25 @@ class BaseVectorFileHandler(BaseHandler):
         ]
 
     def identify_authority(self, layer):
-        layer_wkt = layer.GetSpatialRef().ExportToWkt()
-        crs = pyproj.CRS(layer_wkt)
-        _code = crs.to_epsg(min_confidence=20)
-
-        if _code is None:
-            layer_proj4 = layer.GetSpatialRef().ExportToProj4()
-            _code = pyproj.CRS(layer_proj4).to_epsg(min_confidence=20)
-
-        if _code is None or _code != 10665:
-            proj4_str = crs.to_proj4()
-            if (
-                "+proj=tmerc" in proj4_str and
-                "+lon_0=-51" in proj4_str and
-                "+k=0.999995" in proj4_str and
-                "+x_0=300000" in proj4_str and
-                "+y_0=5000000" in proj4_str
-            ):
-                return "EPSG:10665"
-            else:
-                spatial_ref = layer.GetSpatialRef()
-                spatial_ref.AutoIdentifyEPSG()
-                _name = spatial_ref.GetAuthorityName(None) or spatial_ref.GetAttrValue("AUTHORITY", 0)
-                _code = (
-                    spatial_ref.GetAuthorityCode("PROJCS") or
-                    spatial_ref.GetAuthorityCode("GEOGCS") or
-                    spatial_ref.GetAttrValue("AUTHORITY", 1)
-                )
-                return f"{_name}:{_code}"
-
-        return f"EPSG:{_code}"
+        try:
+            layer_wkt = layer.GetSpatialRef().ExportToWkt()
+            _name = "EPSG"
+            _code = pyproj.CRS(layer_wkt).to_epsg(min_confidence=20)
+            if _code is None:
+                layer_proj4 = layer.GetSpatialRef().ExportToProj4()
+                _code = pyproj.CRS(layer_proj4).to_epsg(min_confidence=20)
+                if _code is None:
+                    raise Exception("CRS authority code not found, fallback to default behaviour")
+        except Exception:
+            spatial_ref = layer.GetSpatialRef()
+            spatial_ref.AutoIdentifyEPSG()
+            _name = spatial_ref.GetAuthorityName(None) or spatial_ref.GetAttrValue("AUTHORITY", 0)
+            _code = (
+                spatial_ref.GetAuthorityCode("PROJCS")
+                or spatial_ref.GetAuthorityCode("GEOGCS")
+                or spatial_ref.GetAttrValue("AUTHORITY", 1)
+            )
+        return f"{_name}:{_code}"
 
     def get_ogr2ogr_driver(self):
         """
